@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Author: Ashwath Gundepally, CU, ECEE
+#
+# Course: ECEN 5013- Advanced Practical Embedded Software
+#
+# Description: Build script for the kernel. Run this in the 
+# main directory that contains the Kernel's make file
+# used to compile the kernel 
+
+
+COMPILE_CONFIG=defconfig                         #compile configuration used to build the kernel
+
+OUTPUT_DIR="output_files"                        #store all the output files in this directory
+
+mkdir $OUTPUT_DIR                                #create the output directory
+
+                                               
+make O=$OUTPUT_DIR  $COMPILE_CONFIG              #make the compile config        
+make O=$OUTPUT_DIR                               #build the kernel
+sudo make O=$OUTPUT_DIR modules_install install  #install all the modules, the kernel

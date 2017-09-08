@@ -15,7 +15,7 @@
 
 
 /*								                
- * Function:     doubly_ll_init(dll_node_ptr* head, uint32_t data, uint32_t position)
+ * Function:     dll_add_node(dll_node_ptr* head, uint32_t data, uint32_t position)
  * -----------------------------------------------------------------------------
  * Description:  Assigns memory specified by 'size' to the circular buffer 
  *               structure pointed to by the pointer argument on the heap. 
@@ -23,9 +23,7 @@
  *               head, tail, total size, and size_occupied, etc.  
  *              
  *           
- * Usage:        Pass a pointer to the circular buffer struc which needs to be
- *               allocated memory on the heap, and an in16_t type specifying 
- *               the size in that order.
+ * Usage:        Pass a pointer to the pointer to the head node of the ll
  * 
  * Returns:      Error codes:
  *               DLL_NULL_POINTER: The pointer passed is detected to be a 
@@ -231,7 +229,7 @@ dll_code dll_size(dll_node_ptr* head, uint32_t* size)
     if(head==NULL||size==NULL)
          return DLL_NULL_PTR;
     
-    dll_node_ptr tmp_head=*head;        i                                       //assign head to a temp variable
+    dll_node_ptr tmp_head=*head;                                               //assign head to a temp variable
     uint32_t count=0;                                                           //initialise count to zero- this will track the dll's size
     
     /*increment count as long as the node is not a NULL*/
