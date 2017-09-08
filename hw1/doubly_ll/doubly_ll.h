@@ -1,8 +1,21 @@
-/*Declaring all functions which are defined in data.c*/
+
+/* 
+ * Author:       Ashwath Gundepally, CU ECEE
+ * 
+ * File:         doubly_ll.h
+ * 
+ * Description:  Contains all function prototypes, enums of the doubly linked list
+ *               that supports basic operations like write an item,
+ *               read an item, find size, etc. defined in doubly_ll.c in the same
+ *               directory
+ *
+ * */
+
+
 #include<stdint.h>
 
-
-typedef enum {DLL_SUCCESS, DLL_NULL_PTR, DLL_MALLOC_FAIL, DLL_BAD_INDEX, DLL_DATA_MISSING} dll_code;
+/*various status codes returned by functions*/
+typedef enum {DLL_SUCCESS, DLL_NULL_PTR, DLL_MALLOC_FAIL, DLL_BAD_POSITION, DLL_DATA_MISSING} dll_code;
 
 
 /*								                
@@ -23,8 +36,10 @@ typedef struct dll_node
     uint32_t data;
 }dll_node;
 
+
+
 /*								                
- * Function:     circ_buff_init(CIRC_BUFF* circ_buff_ptr, int16_t size)
+ * Function:     dll_add_node(dll_node_ptr* head, uint32_t data, uint32_t position)
  * -----------------------------------------------------------------------------
  * Description:  Assigns memory specified by 'size' to the circular buffer 
  *               structure pointed to by the pointer argument on the heap. 
@@ -32,116 +47,111 @@ typedef struct dll_node
  *               head, tail, total size, and size_occupied, etc.  
  *              
  *           
- * Usage:        Pass a pointer to the circular buffer struc which needs to be
- *               allocated memory on the heap, and an in16_t type specifying 
- *               the size in that order.
+ * Usage:        Pass a pointer to the pointer to the head node of the ll.
+ *               If the linked list does not exit, pass a pointer to NULL
+ *               and enter zero for the position index.
+ *               If a non-null head is detected with position zero, a new node
+ *               will be created at position zero.
  * 
  * Returns:      Error codes:
- *               CIRC_BUFF_NULL_POINTER: The pointer passed is detected to be a 
+ *               DLL_NULL_POINTER: The pointer passed is detected to be a 
  *               null. The function halts execution and returns w/o completion.   
- *               
- *               CIRC_BUFF_BAD_DATA: The size parameter is less than or equal 
+ *                  
+ *               DLL_BAD_DATA: The size parameter is less than or equal 
  *               to zero.
  *               
- *               CIRC_BUFF_MALLOC_FAIL: The call to malloc fails.
+ *               DLL_MALLOC_FAIL: The call to malloc fails.
  *
- *               CIRC_BUFF_SUCCESS: The function completes execution 
- *               successfully.  
- * ----------------------------------------------------------------------------
+ *               DLL_SUCCESS: The funcion returns successfully.
  */
-circ_buff_code circ_buff_init(CIRC_BUFF* circ_buff_pointer, int16_t size);
-
+dll_code dll_add_node(dll_node_ptr* head, uint32_t position, uint32_t data);
 /*								                
- * Function:     circ_buff_destroy(CIRC_BUFF* circ_buff_ptr)
+ * Function:     dll_destroy(dll_node_ptr head)
  * -----------------------------------------------------------------------------
- * Description:  De-allocates memory on the heap allocated to the circ_buffer_
- *               pointer.
+ * Description:  De-allocates memory on the heap allocated to all the nodes in
+ *               the doubly linked list.
  *               
  *              
- * Usage:        Pass a pointer to the circular buffer struc which needs to be
- *               de-allocated memory on the heap.
+ * Usage:        Pass a pointer the head of the dll.
  * 
  * Returns:      Error codes:
- *               CIRC_BUFF_NULL_PTR: The pointer passed to the function is a
+ *               DLL_NULL_PTR: The pointer passed to the function is a
  *               NULL and is thus invalid. The function halts execution and 
  *               returns.
  *
- *               CIRC_BUFF_SUCCESS: The function completes execution 
+ *               DLL_SUCCESS: The function completes execution 
  *               completely.   
  * ----------------------------------------------------------------------------
  */
-circ_buff_code circ_buff_destroy(CIRC_BUFF* circ_buff_pointer);
+dll_code dll_destroy(dll_node_ptr head);
 
 /*								                
- * Function:     circ_buff_write(CIRC_BUFF* circ_buff_ptr, uint8_t data)
+ * Name:         dll_remove_node(dll_node_ptr head, uint32_t position)
  * -----------------------------------------------------------------------------
- * Description:  Writes data to the circular buffer- circ_buff_ptr.
+ * Description:  Removes node from the dll safely at a given index.
  *               
- * Usage:        Pass a pointer to the circular buffer, the data that needs to 
- *               be written in that order.
+ * Working:      Takes a ptr to the head and traverses the dll to reach 
+ *               position-1, grabs node at position and frees its memory. Links 
+ *               node before and after position safely. Returns node data in
+ *               the pointer passed.
  * 
  * Returns:      Error codes:
- *               CIRC_BUFF_NULL_PTR: The pointer passed to the function is a
+ *               DLL_NULL_PTR: The pointer passed to the function is a
  *               NULL and is thus invalid. The function halts execution and 
  *               returns.
  *
- *               CIRC_BUFF_FULL: The buffer is currently full and thus new
- *               data can not be written to it.
+ *               DLL_BAD_POSITION: The dll's size is lesser than the position
+ *               specified.
  *
- *               CIRC_BUFF_SUCCESS: The function completes execution 
- *               successfully.   
+ *               DLL_SUCCESS: The function completes execution successfully   
  * ----------------------------------------------------------------------------
  */
-circ_buff_code circ_buff_write(CIRC_BUFF* circ_buff_pointer, uint8_t data);
+dll_code dll_remove_node(dll_node_ptr head, uint32_t position, uint32_t* data);
 
 
 /*								                
- * Function:     circ_buff_read(CIRC_BUFF* circ_buff_pointer, uint8_t* data)
+ * Function:     dll_size(dll_node_ptr head, uint32_t* size)
  * -----------------------------------------------------------------------------
- * Description:  Returns data from the circular buffer pointed by circ_buff_ptr, 
- *               based on the current head position in the buffer in the *data
- *               pointer.
- *               
- * Usage:        Pass a pointer to the circular buffer, a pointer to uint8_t 
- *               in that order. The pointer to uint8_t will contain the data
- *               at the head of the circular buffer.  
- * 
+ * Description:  Returns size of the dll whose head is given by *head.
+ *      
+ * Usage:        Pass a pointer to the head of the dll, a pointer
+ *               to a uint32_t type in that order. The pointer to uint32_t will 
+ *               contain the size of the dll.
+ *                
  * Returns:      Error codes:
- *               CIRC_BUFF_NULL_PTR: The pointer passed to the function is a
+ *               DLL_NULL_PTR: The pointer passed to the function is a
  *               NULL and is thus invalid. The function halts execution and 
  *               returns.
- *               
- *               CIRC_BUFF_EMPTY: The buffer is currently empty and thus can
- *               not return any data.
- *               
- *               CIRC_BUFF_SUCCESS: The function completes execution 
- *               completely.   
+ *
+ *               DLL_SUCCESS: The function completes execution successfully.   
  * ----------------------------------------------------------------------------
  */
-circ_buff_code circ_buff_read(CIRC_BUFF* circ_buff_pointer, uint8_t* data);
+dll_code dll_size(dll_node_ptr head, uint32_t* size);
+
 
 /*								                
- * Function:     circ_buff_size(CIRC_BUFF* circ_buff_pointer, uint8_t* size)
+ * Function:     dll_search(dll_node_ptr head, uint32_t data, uint32_t* position)
  * -----------------------------------------------------------------------------
- * Description:  Returns the current size of the buffer in the size pointer
- *               provided as an argument.
+ * Description:  Returns the position of the node containing the data input via a 
+ *               input pointer of the dll with the head pointer equal to head.
  *               
- * Usage:        Pass a pointer to the circular buffer, a pointer to a uint16_t 
- *               type in that order. The pointer to the uint16_t type will 
- *               contain the size occupied in buffer memory
+ * Usage:        Checks to see if the data element is there in each node starting
+ *               from head. Returns the position of the first node which has the
+ *               data. Sets position pointer to NULL and passes apt return code
+ *               to indicate data was not found.
  *               
+ *
  * Returns:      Error codes:
- *               CIRC_BUFF_NULL_PTR: The pointer passed to the function is a
+ *               DLL_NULL_PTR: The pointer passed to the function is a
  *               NULL and is thus invalid. The function halts execution and 
  *               returns.
- *               
- *               CIRC_BUFF_SUCCESS: The function completes execution 
- *               completely.   
+ *
+ *               DLL_DATA_MISSING: The data requested to be searched was not
+ *               found present in any of the nodes.
+ *
+ *               DLL_SUCCESS: The function completes execution 
+ *               successfully- the data is found.
  * ----------------------------------------------------------------------------
  */
-circ_buff_code circ_buff_size(CIRC_BUFF* circ_buff_pointer, uint16_t* size);
-
-circ_buff_code if_circ_buff_full(CIRC_BUFF* circ_buff_pointer);
-
-circ_buff_code if_circ_buff_empty(CIRC_BUFF* circ_buff_pointer);
+dll_code dll_search(dll_node_ptr head, uint32_t data, uint32_t* position);
 
