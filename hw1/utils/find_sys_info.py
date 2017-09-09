@@ -1,4 +1,11 @@
 #!/usr/bin/env python
+# Author: Ashwath Gundepally, CU, ECEE
+#
+# Name: find_sys_info.py
+#
+# Description: Finds some sys_info and writes to a file sys_info.txt
+#              in the same directory.
+
 import subprocess   #module helps execute shell commands in python
 
 
@@ -37,6 +44,7 @@ file_to_write.write("\nKernel build time: ")
 for x in range(13,19):
     file_to_write.write(version_info_list[x]+" ")
 
+#sys arch info, calling lscpu using the subprocess module
 lscpu_call=subprocess.check_output("lscpu")
 
 lscpu_call_list=lscpu_call.split("\n")
@@ -46,5 +54,4 @@ for x in range(0,4):
     file_to_write.write(lscpu_call_list[x]+"\n")
 
 file_to_write.close()
-
 
