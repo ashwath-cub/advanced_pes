@@ -16,11 +16,11 @@
 #include<stdio.h>
 #include<inttypes.h>
 
-#define fp1 stdout
+
 
 
 /*								                
- * Function:     circ_buff_init(CIRC_BUFF* circ_buff_ptr, int16_t size)
+ * Function:     circ_buff_init(circ_buff_ptr* circ_buff_pointer, int16_t size)
  * -----------------------------------------------------------------------------
  * Description:  Assigns memory specified by 'size' to the circular buffer 
  *               structure pointed to by the pointer argument on the heap. 
@@ -28,9 +28,9 @@
  *               head, tail, total size, and size_occupied, etc.  
  *              
  *           
- * Usage:        Pass a pointer to the circular buffer struc which needs to be
- *               allocated memory on the heap, and an in16_t type specifying 
- *               the size in that order.
+ * Usage:        Pass a pointer to the ptr of the circular buffer struc which 
+ *               needs to be allocated memory on the heap, and a uin32_t type 
+ *               specifying the size in that order.
  * 
  * Returns:      Error codes:
  *               CIRC_BUFF_NULL_POINTER: The pointer passed is detected to be a 
@@ -43,18 +43,19 @@
  *
  *               CIRC_BUFF_SUCCESS: The funcion returns successfully.
  */
-circ_buff_code circ_buff_init(CIRC_BUFF** circ_buff_pointer, uint32_t size)
+circ_buff_code circ_buff_init(circ_buff_ptr* circ_buff_pointer, int32_t size)
 {
-    //error handling
-    if(circ_buff_pointer==NULL)                        //check if the pointer is NULL
+    /*check if the pointer is NULLi*/
+    if(circ_buff_pointer==NULL)                                                 
          return CIRC_BUFF_NULL_PTR;   
-    *(circ_buff_pointer)=(CIRC_BUFF*)malloc(sizeof(CIRC_BUFF));
-    
+
+    /*assign the circ buff struct on the heap*/
+    *(circ_buff_pointer)=(circ_buff_ptr)malloc(sizeof(circ_buff));
     if((*circ_buff_pointer)==NULL)
          return CIRC_BUFF_MALLOC_FAIL;
-    
-    (*circ_buff_pointer)->base=(uint32_t*)malloc(size);    //access the buff pointer and allocate memory on the heap
-    
+
+    /*access the buff pointer and allocate memory on the heap*/ 
+    (*circ_buff_pointer)->base=(uint32_t*)malloc(size);                             
     if((*circ_buff_pointer)->base==NULL)
          return CIRC_BUFF_MALLOC_FAIL;
 
@@ -66,12 +67,13 @@ circ_buff_code circ_buff_init(CIRC_BUFF** circ_buff_pointer, uint32_t size)
     (*circ_buff_pointer)->head=(*circ_buff_pointer)->base;                        
     (*circ_buff_pointer)->tail=(*circ_buff_pointer)->base;   
     
-    return CIRC_BUFF_SUCCESS;                          //return successfully
+    /*return successfully*/
+    return CIRC_BUFF_SUCCESS;                          
 }	
 
 
 /*								                
- * Function:     circ_buff_destroy(CIRC_BUFF* circ_buff_ptr)
+ * Function:     circ_buff_destroy(circ_buff_ptr circ_buff_ptr)
  * -----------------------------------------------------------------------------
  * Description:  De-allocates memory on the heap allocated to the circ_buffer_
  *               pointer.
@@ -89,52 +91,90 @@ circ_buff_code circ_buff_init(CIRC_BUFF** circ_buff_pointer, uint32_t size)
  *               completely.   
  * ----------------------------------------------------------------------------
  */
-circ_buff_code circ_buff_destroy(CIRC_BUFF* circ_buff_pointer)
+circ_buff_code circ_buff_destroy(circ_buff_ptr circ_buff_pointer)
 {
-    //basic pointer check; error handling	
+    /*basic pointer check*/
     if(circ_buff_pointer==NULL)
 	 return CIRC_BUFF_NULL_PTR;
     
-    //free the memory of the buffer on the heap
+    /*free the memory of the buffer on the heap*/
     free(circ_buff_pointer->base);
 
     /*Reassign all the parameters to 0*/
     circ_buff_pointer->size_occupied=0;             
     circ_buff_pointer->total_size=0;
     
-    /*assigning some random value that is not between 0 and size-1 signifies that the buffer is empty*/
+    /*assigning NULL to the head and tail ptrs*/
     circ_buff_pointer->head=NULL;                        
     circ_buff_pointer->tail=NULL;   
-
     
+    /*now deallocate the structure*/
+    free(circ_buff_pointer);
+
+    /*return safely*/ 
     return CIRC_BUFF_SUCCESS; 
 }
 
-circ_buff_code if_circ_buff_full(CIRC_BUFF* circ_buff_pointer)
+/*								                
+ * Function:     if_circ_buff_full(circ_buff_ptr circ_buff_ptr)
+ * -----------------------------------------------------------------------------
+ * Description:  Returns code indicating whether or not the buffer is full
+ *              
+ * Usage:        Pass a pointer to the circular buff struct and collect status
+ *               indicating whether or not the buffer is full in the return 
+ *               code
+ * 
+ * Returns:      Error/Status codes:
+ *               CIRC_BUFF_NULL_PTR: The pointer passed to the function is a
+ *               NULL and is thus invalid. The function halts execution and 
+ *               returns.
+ *               
+ *               CIRC_BUFF_FULL: The circular buffer is full.
+ * ----------------------------------------------------------------------------
+ */
+circ_buff_code if_circ_buff_full(circ_buff_ptr circ_buff_pointer)
 {
-    //basic pointer check; error handling	
+    /*basic pointer check*/	
     if(circ_buff_pointer==NULL)
 	 return CIRC_BUFF_NULL_PTR;
-    
+
+    /*collect total and current size values of the buffer in a local variables*/ 
     uint32_t current_buff_size=circ_buff_pointer->size_occupied, total_buff_size= circ_buff_pointer->total_size;
     
-    //check if the buffer is full
+    /*check if the buffer is full*/
     if(current_buff_size ==total_buff_size)
 	 return CIRC_BUFF_FULL;
     else
 	 return CIRC_BUFF_CAN_WRITE; 
 }
 
-
-circ_buff_code if_circ_buff_empty(CIRC_BUFF* circ_buff_pointer)
+/*								                
+ * Name:         circ_buff_empty(circ_buff_ptr circ_buff_pointer)
+ * -----------------------------------------------------------------------------
+ * Description:  Returns status code based on whether or not the buffer is empty.
+ *               Takes a pointer to the circular buffer
+ *               
+ * Returns:      Error/status codes:
+ *               CIRC_BUFF_NULL_PTR: The pointer passed to the function is a
+ *               NULL and is thus invalid. The function halts execution and 
+ *               returns.
+ *
+ *               CIRC_BUFF_EMPTY: The buffer is currently empty and thus data
+ *               cannot be read from it.
+ *               
+ *               CIRC_BUFF_CAN_READ: The buffer is not empty; data can be read
+ * ----------------------------------------------------------------------------
+ */
+circ_buff_code if_circ_buff_empty(circ_buff_ptr circ_buff_pointer)
 {
-    //basic pointer check; error handling	
+    /*basic pointer check; error handling*/	
     if(circ_buff_pointer==NULL)
 	 return CIRC_BUFF_NULL_PTR;
+
+    /*read current buffer size*/
+    uint32_t current_buff_size=circ_buff_pointer->size_occupied;  
     
-    uint32_t current_buff_size=circ_buff_pointer->size_occupied;  //read current buffer size
-    
-    //check if the buffer is emptry
+    /*check if the buffer is emptry*/
     if(current_buff_size ==0)
 	 return CIRC_BUFF_EMPTY;
     else
@@ -149,7 +189,7 @@ circ_buff_code if_circ_buff_empty(CIRC_BUFF* circ_buff_pointer)
  *               
  * Working:      Writes at location tail+1 if there is space. Calculates space 
  *               first. Returns error if there is no space. Also updates tail 
- *               and the size_occupied upon a successful write.  
+ *               and the current size occupied upon a successful write.  
  * 
  * Returns:      Error codes:
  *               CIRC_BUFF_NULL_PTR: The pointer passed to the function is a
@@ -160,38 +200,42 @@ circ_buff_code if_circ_buff_empty(CIRC_BUFF* circ_buff_pointer)
  *               data can not be written to it.
  *
  *               CIRC_BUFF_SUCCESS: The function completes execution 
- *               completely.   
+ *               successfully.   
  * ----------------------------------------------------------------------------
  */
-circ_buff_code circ_buff_write(CIRC_BUFF* circ_buff_pointer, uint32_t data)
+circ_buff_code circ_buff_write(circ_buff_ptr circ_buff_pointer, uint32_t data)
 {
-    //basic pointer check; error handling	
+    /*basic pointer check; error handling*/	
     if(circ_buff_pointer==NULL)
 	 return CIRC_BUFF_NULL_PTR;
-
+    
+    /*call if_circ_buff_full to check if a write is feasible at all*/
     circ_buff_code if_write_ok=if_circ_buff_full(circ_buff_pointer);
     
     if(if_write_ok!=CIRC_BUFF_CAN_WRITE)
 	 return CIRC_BUFF_FULL;
 
+    /*collect total size in a variable*/
     uint32_t total_buff_size= circ_buff_pointer->total_size;
     
-
-    *(circ_buff_pointer->tail)=data;  //grab the tail and write to it
+    /*grab the tail and write to it*/
+    *(circ_buff_pointer->tail)=data;  
     
+    /*update tail circularly*/
     if((circ_buff_pointer->tail-circ_buff_pointer->base)!=total_buff_size)
-         circ_buff_pointer->tail++;           //update tail circularly
+         circ_buff_pointer->tail++;           
     else
 	 circ_buff_pointer->tail=circ_buff_pointer->base;
 
-    //update the size occupied by the buffer 
+    /*update the size occupied by the buffer*/
     circ_buff_pointer->size_occupied++;
-
+    
+    /*return successfully*/
     return CIRC_BUFF_SUCCESS;
 }
 
 /*								                
- * Function:     circ_buff_read(CIRC_BUFF* circ_buff_pointer, uint8_t* data)
+ * Function:     circ_buff_read(circ_buff_ptr circ_buff_pointer, uint32_t* data)
  * -----------------------------------------------------------------------------
  * Description:  Returns data from the circular buffer pointed by circ_buff_ptr, 
  *               based on the current head position in the buffer in the *data
@@ -201,7 +245,7 @@ circ_buff_code circ_buff_write(CIRC_BUFF* circ_buff_pointer, uint32_t data)
  *               in that order. The pointer to uint8_t will contain the data
  *               at the head of the circular buffer.
  *                
- * Returns:      Error codes:
+ * Returns:      Error/Status codes:
  *               CIRC_BUFF_NULL_PTR: The pointer passed to the function is a
  *               NULL and is thus invalid. The function halts execution and 
  *               returns.
@@ -213,50 +257,97 @@ circ_buff_code circ_buff_write(CIRC_BUFF* circ_buff_pointer, uint32_t data)
  *               completely.   
  * ----------------------------------------------------------------------------
  */
-circ_buff_code circ_buff_read(CIRC_BUFF* circ_buff_pointer, uint32_t* data)
+circ_buff_code circ_buff_read(circ_buff_ptr circ_buff_pointer, uint32_t* data)
 {
-    //basic pointer check; error handling	
+    /*basic pointer check; error handling*/	
     if(circ_buff_pointer==NULL||data==NULL)
 	 return CIRC_BUFF_NULL_PTR;
+
+    /*get buffer status- find if data can be read*/
+    circ_buff_code if_read_ok=if_circ_buff_empty(circ_buff_pointer);     
     
-    circ_buff_code if_read_ok=if_circ_buff_empty(circ_buff_pointer);     //get buffer status- find if data can be read
-    
+    /*check if a read is feasible at all*/ 
     if(if_read_ok!=CIRC_BUFF_CAN_READ)
-	    return CIRC_BUFF_EMPTY;                      //the buffer is empty; nothing to read
+	 return CIRC_BUFF_EMPTY;                      
     
+    /*collect total size in a local variable*/ 
     uint32_t total_buff_size= circ_buff_pointer->total_size;
     
+    /*assign the byte located at head to data and complete the read*/
+    *data= *(circ_buff_pointer->head);  
 
-    *data= *(circ_buff_pointer->head);  //assign the byte located at head to data and complete the read 
-
-    //update head circularly
-    if(circ_buff_pointer->head!=circ_buff_pointer->base)
-         circ_buff_pointer->head--;           
+    /*update head circularly*/
+    if((circ_buff_pointer->head-circ_buff_pointer->base)!=total_buff_size)
+         circ_buff_pointer->head++;           
     else
-	 circ_buff_pointer->head=(circ_buff_pointer->base)+total_buff_size;
+	 circ_buff_pointer->head=(circ_buff_pointer->base);
 
-
-
-    //update the size occupied by the buffer
+    /*update the size occupied by the buffer*/
     circ_buff_pointer->size_occupied--;
-
+    
+    /*return successfully*/
     return CIRC_BUFF_SUCCESS;
 }	
 
-circ_buff_code dump(CIRC_BUFF* cb)
+/*								                
+ * Function:     circ_buff_dump(circ_buff_ptr cb)
+ * -----------------------------------------------------------------------------
+ * Description:  Dumps all data from the circular buffer pointed by circ_buff_ptr
+ *               in a file in the same directory whose name is defined by FILE_NAME
+ *               
+ * Usage:        Pass a pointer to the circular buffer.
+ * 
+ * Returns:      Error/Status codes:
+ *               CIRC_BUFF_NULL_PTR: The pointer passed to the function is a
+ *               NULL and is thus invalid. The function halts execution and 
+ *               returns.
+ *               
+ *               CIRC_BUFF_FILE_OPEN_FAILED: Call to fopen failed.
+ *
+ *               CIRC_BUFF_EMPTY: The buffer is currently empty and thus can
+ *               not return any data.
+ *               
+ *               CIRC_BUFF_SUCCESS: The function completes execution 
+ *               completely.
+ * ----------------------------------------------------------------------------
+ */
+circ_buff_code dump(circ_buff_ptr cb)
 {
     uint32_t total_size= cb->total_size, index; 
     uint32_t head=cb->head-cb->base, tail=cb->tail-cb->base;
     
-    fprintf(fp1, "Region:\t");
-    for(index=0; index<total_size; index++)
-         fprintf(fp1,"%"PRIu32"\t",*(cb->base+index));
+    FILE* fp1;
     
-    fprintf(fp1, "Buffer:\t");
-
+    /*get buffer status- find if data can be read*/
+    circ_buff_code if_read_ok=if_circ_buff_empty(cb);     
+    
+    /*check if there's data to be dumped in the first place*/ 
+    if(if_read_ok!=CIRC_BUFF_CAN_READ)
+	 return CIRC_BUFF_EMPTY;                      
+    
+    /*open a file*/ 
+    fp1=fopen(FILE_NAME, "w+");
+    
+    if(fp1==NULL)
+	 return CIRC_BUFF_FILE_OPEN_FAILED;
+    
+    /*heading*/ 
+    fprintf(fp1, "Buffer Data:\n");
+    
+    /*handle case by case*/ 
+    /*Case 1:*/
+    /*Buffer scenario:*/
+    /*  ###########************##############             
+     *  ^          ^           ^            ^
+     *  |          |           |            |
+     *  base_ptr   tail_ptr    head_ptr     base_ptr+total_size
+     *  #-Data element
+     *  *-empty element
+     * */
     if(head>tail)
     {
-         for(index=0; index<tail; index++)
+         /*using for loop to print as per the above scenario*/
+	 for(index=0; index<tail; index++)
               fprintf(fp1, "%"PRIu32"\t", *(cb->base+index));
          for(index=tail; index<head; index++){
               fprintf(fp1, "*\t");
@@ -265,12 +356,23 @@ circ_buff_code dump(CIRC_BUFF* cb)
               fprintf(fp1, "%"PRIu32"\t", *(cb->base+index));
          }
     }
+    /*Case 2:*/
+    /*Buffer scenario:*/
+    /*  ***********############**************             
+     *  ^          ^           ^            ^
+     *  |          |           |            |
+     *  base_ptr   head_ptr    tail_ptr     base_ptr+total_size
+     *  
+     *  '#'-Data element
+     *  '*'-empty
+     *
+     * */
     else{
-
+         /*using for loop to print as per the above scenario*/
          for(index=0; index<head; index++){
               fprintf(fp1, "*\t");
          }
-
+         
          for(index=head; index<tail; index++){
               fprintf(fp1, "%"PRIu32"\t", *(cb->base+index));
          }
@@ -280,103 +382,6 @@ circ_buff_code dump(CIRC_BUFF* cb)
          }
     
     }    
-    fprintf(fp1,"\nIndex:\t");
-    for(index=0; index<total_size; index++)
-         fprintf(fp1,"%d\t",index);
-    fprintf(fp1,"\n\n");
-    
+    /*the above scenarios encompass all the buffer states*/ 
     return CIRC_BUFF_SUCCESS;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*								                
- * Function:     circ_buff_size(CIRC_BUFF* circ_buff_pointer, uint8_t* size)
- * -----------------------------------------------------------------------------
- * Description:  Returns the current size of the buffer in the size pointer
- *               provided as an argument.
- *               
- * Usage:        Pass a pointer to the circular buffer, a pointer to uint8_t 
- *               in that order. The pointer to a uint8_t will contain the data
- *               at the head of the circular buffer.
- *               
- * Returns:      Error codes:
- *               CIRC_BUFF_NULL_PTR: The pointer passed to the function is a
- *               NULL and is thus invalid. The function halts execution and 
- *               returns.
- *               
- *               CIRC_BUFF_SUCCESS: The function completes execution 
- *               completely.   
- * ----------------------------------------------------------------------------
- */
-/*circ_buff_code circ_buff_size(CIRC_BUFF* circ_buff_pointer, uint16_t* size)
-{
-    //basic pointer check; error handling	
-    if(circ_buff_pointer==NULL||size==NULL)
-	 return CIRC_BUFF_NULL_PTR;
-    
-
-    uint16_t current_head=circ_buff_pointer->head, current_tail= circ_buff_pointer->tail, total_buff_size= circ_buff_pointer->total_size;
-   */ 
-    /* Case 1:  ------*************------
-     *                ^           ^      
-     *                |           |      
-     *               head       tail   
-     *         
-     *          length=head-tail    
-     *
-     * Case 2: ********-----------********
-     *                ^           ^      ^
-     *                |           |      |
-     *              tail        head  buffer-end 
-     *     
-     *     length=(total_size-head)+(total_size-tail)
-     *
-     */
-/*    if(current_head>current_tail)
-         *size=(total_buff_size-(current_head+1))+ (total_buff_size-(current_tail+1));
-    else
-	 *size=current_tail-current_head;
-    
-    
-    return CIRC_BUFF_SUCCESS;
-}
-*/
-
-
