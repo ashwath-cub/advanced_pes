@@ -11,6 +11,8 @@
  *
  * */
 
+#ifndef _DLL_H_
+#define _DLL_H_
 
 #include<stdint.h>
 
@@ -154,4 +156,4 @@ dll_code dll_size(dll_node_ptr head, uint32_t* size);
  * ----------------------------------------------------------------------------
  */
 dll_code dll_search(dll_node_ptr head, uint32_t data, uint32_t* position);
-
+#endif
