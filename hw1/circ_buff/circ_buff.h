@@ -1,4 +1,6 @@
-/*Declaring all functions which are defined in data.c*/
+/* AUTHOR: Ashwath Gundepally*/
+/* Name: circ_buff.h         */
+/* Description: header file for circ_buff.c*/
 
 #ifndef _CIRC_BUFF_H
 #define _CIRC_BUFF_H  
